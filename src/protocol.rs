@@ -2,7 +2,7 @@
 use self::OpCode::*;
 use std::convert::{Into, From};
 use std::fmt;
-/// Operation codes as part of rfc6455.
+
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum OpCode {
 	/// Indicates a continuation frame of a fragmented message.

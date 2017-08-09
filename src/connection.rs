@@ -163,7 +163,8 @@ where
 
 	//TODO
 	pub fn reset(&mut self) -> Result<()> {
-
+		
+		// socket is client
 		if self.is_client() {
 			if let Connecting(ref mut req, ref mut res) = self.state {
 				req.set_position(0);

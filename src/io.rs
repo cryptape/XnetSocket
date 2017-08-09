@@ -159,9 +159,9 @@ where
 							sock.set_nodelay(true)?
 						}
 						let mut conn = Connection::new(tok, sock, handler, settings, connection_id);
+						//TODO connected to do on_open() function
 						conn.open();
 						entry.insert(conn);
-						//TODO connected to do on_open() function
 						break;
 					}
 				} else {
@@ -179,6 +179,7 @@ where
 			return Err(error);
 		}
 
+		//register socket event
 		poll.register(self.connections[tok].socket(), self.connections[tok].token(), self.connections[tok].events(), PollOpt::edge() | PollOpt::oneshot())
 		    .map_err(Error::from)
 		    .or_else(|err| {
@@ -212,7 +213,6 @@ where
 		};
 
 		let conn = &mut self.connections[tok];
-
 		conn.as_server()?; //监听可读
 
 		let ret: Result<()> = poll.register(conn.socket(), conn.token(), conn.events(), PollOpt::edge() | PollOpt::oneshot())
@@ -246,8 +246,9 @@ where
 
 		self.state = State::Active;
 		let result = self.event_loop(poll);
-		self.state = State::Inactive;
 
+		//close XnetSocket after clean's work
+		self.state = State::Inactive;
 		result.and(poll.deregister(&self.timer).map_err(|e| Error::from(e)))
 		      .and(poll.deregister(&self.queue_rx).map_err(|e| Error::from(e)))
 	}
@@ -306,9 +307,6 @@ where
 
 	#[inline]
 	fn check_active(&mut self, poll: &mut Poll, active: bool, token: Token) {
-		// NOTE: Closing state only applies after a ws connection was successfully
-		// established. It's possible that we may go inactive while in a connecting
-		// state if the handshake fails.
 		if !active {
 			if let Ok(addr) = self.connections[token].socket().peer_addr() {
 				debug!("socket connection to {} disconnected.", addr);
@@ -341,6 +339,7 @@ where
 		if self.connections.len() == 0 {
 			if !self.state.is_active() {
 				debug!("Shutting down socket server.");
+
 			} else if self.is_client() {
 				debug!("Shutting down socket client.");
 				self.factory.on_shutdown();
@@ -381,8 +380,9 @@ where
 				for _ in 0..MESSAGES_PER_TICK {
 					match self.queue_rx.try_recv() {
 						Ok(cmd) => self.handle_queue(poll, cmd),
-						_ => break,
-					}
+						Err(err) => error!("message recive data queue error {:?}", err.to_string()),
+					};
+					break;
 				}
 				let _ = poll.reregister(&self.queue_rx, QUEUE, Ready::readable(), PollOpt::edge() | PollOpt::oneshot());
 			}
