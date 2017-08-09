@@ -112,6 +112,7 @@ where
 		}
 	}
 
+	//socket successed callback the function
 	pub fn open(&mut self) -> Result<()> {
 		trace!("accept socket{:?}", self.token);
 		if let Connecting(ref req, ref res) = replace(&mut self.state, Open) {
@@ -353,6 +354,7 @@ where
 		self.events = Ready::empty()
 	}
 
+	///
 	pub fn consume(self) -> H {
 		self.handler
 	}
@@ -412,9 +414,7 @@ where
 
 				// Start out assuming that this write will clear the whole buffer
 				self.events.remove(Ready::writable());
-				//写的数据，返回写的长度，错误码已经返回值的形式，发送给对方。
-				trace!("---------------======postions {:?}-", self.out_buffer.position());
-
+				trace!("postions {:?}", self.out_buffer.position());
 				if let Some(len) = try!(self.socket.try_write_buf(&mut self.out_buffer)) {
 					trace!("Wrote {} bytes to {}", len, self.peer_addr());
 					if len == 0 {
@@ -432,7 +432,6 @@ where
 			};
 
 			if self.socket.is_negotiating() && res.is_ok() {
-				//这个一般不会执行
 				self.events.remove(Ready::writable());
 				self.events.insert(Ready::readable());
 			}
@@ -450,7 +449,7 @@ where
 		trace!("Message opcode {:?}", opcode);
 		let data = msg.into_data();
 
-		self.check_buffer_out(&data)?; //检查输出buffer容量，不够则扩充容量。
+		self.check_buffer_out(&data)?;
 		trace!("Buffering frame to {} : {:?}", self.peer_addr(), data);
 		//TODO 写数据。
 		let pos = self.out_buffer.position();
@@ -489,7 +488,7 @@ where
 
 		trace!("Sending close {:?} -- {:?} to {}.", code, reason.borrow(), self.peer_addr());
 
-		//TODO 关闭的错误原因。通知对方，为什么，是什么原因关闭。
+		//TODO
 		//        if let Some(frame) = try!(self.handler.buffer_frame(Frame::close(code, reason.borrow()))) {
 		//            try!(self.buffer_frame(frame));
 		//        }
@@ -498,14 +497,12 @@ where
 
 		Ok(self.check_events())
 	}
-
-	//通过事件来产生读写的，都是以回调的方式，
-	//思想:是事先准备好数据,然后设置监听事件,然后进行回调处理.
+	
 	fn check_events(&mut self) {
 		if !self.state.is_connecting() {
 			self.events.insert(Ready::readable());
 			if self.out_buffer.position() < self.out_buffer.get_ref().len() as u64 {
-				trace!("check_event----{:?}-----{:?}-", self.out_buffer.get_ref().len(), self.out_buffer.get_ref());
+				trace!("check_event{:?}- {:?}-", self.out_buffer.get_ref().len(), self.out_buffer.get_ref());
 				self.events.insert(Ready::writable());
 			}
 		}

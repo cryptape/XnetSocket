@@ -1,5 +1,4 @@
 use io::ALL;
-
 use message;
 use mio;
 use mio::Token;
@@ -7,9 +6,7 @@ use protocol::CloseCode;
 use result::{Result, Error};
 use std::borrow::Cow;
 use std::convert::Into;
-
 use std::net::{SocketAddr, ToSocketAddrs};
-
 use url;
 
 
@@ -26,9 +23,7 @@ pub enum Signal {
 #[derive(Debug, Clone)]
 pub struct Command {
 	token: Token,
-
 	signal: Signal,
-
 	connection_id: u32,
 }
 

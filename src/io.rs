@@ -1,10 +1,7 @@
 use super::Settings;
-
-
 use communication::{Sender, Signal, Command};
 use connection::Connection;
 use factory::Factory;
-
 use mio;
 use mio::{Token, Ready, Poll, PollOpt};
 use mio::tcp::{TcpListener, TcpStream};
@@ -14,10 +11,8 @@ use std::io::{ErrorKind, Error as IoError};
 use std::net::{SocketAddr, ToSocketAddrs};
 use std::time::Duration;
 use std::usize;
-
 use url::Url;
 use util::Slab;
-
 const QUEUE: Token = Token(usize::MAX - 3); //接受数据方监听的fd,
 const TIMER: Token = Token(usize::MAX - 4);
 pub const ALL: Token = Token(usize::MAX - 5);
@@ -382,7 +377,7 @@ where
 				}
 			}
 			QUEUE => {
-				//监听的队列事件发生，接受服务的发的数据，服务发的数据都是通过chanel一起发的。
+				//监听的队列事件发生，接受服务发的数据，服务socket数据都是通过chanel一起发的。
 				for _ in 0..MESSAGES_PER_TICK {
 					match self.queue_rx.try_recv() {
 						Ok(cmd) => self.handle_queue(poll, cmd),

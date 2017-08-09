@@ -1,5 +1,4 @@
 
-
 use self::OpCode::*;
 use std::convert::{Into, From};
 use std::fmt;
@@ -14,10 +13,6 @@ pub enum OpCode {
 	Binary,
 	/// Indicates a close control frame.
 	Close,
-	/// Indicates a ping control frame.
-	Ping,
-	/// Indicates a pong control frame.
-	Pong,
 	/// Indicates an invalid opcode was received.
 	Bad,
 }
@@ -39,8 +34,6 @@ impl fmt::Display for OpCode {
 			Text => write!(f, "TEXT"),
 			Binary => write!(f, "BINARY"),
 			Close => write!(f, "CLOSE"),
-			Ping => write!(f, "PING"),
-			Pong => write!(f, "PONG"),
 			Bad => write!(f, "BAD"),
 		}
 	}
@@ -53,8 +46,6 @@ impl Into<u8> for OpCode {
 			Text => 1,
 			Binary => 2,
 			Close => 8,
-			Ping => 9,
-			Pong => 10,
 			Bad => {
 				debug_assert!(false, "Attempted to convert invalid opcode to u8. This is a bug.");
 				8 // if this somehow happens, a close frame will help us tear down quickly
@@ -70,8 +61,6 @@ impl From<u8> for OpCode {
 			1 => Text,
 			2 => Binary,
 			8 => Close,
-			9 => Ping,
-			10 => Pong,
 			_ => Bad,
 		}
 	}

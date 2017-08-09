@@ -45,7 +45,6 @@ where
 
 mod test {
     #![allow(unused_imports, unused_variables, dead_code)]
-
 	use super::*;
 	use communication::{Command, Sender};
 	use handler::Handler;

@@ -6,10 +6,9 @@ use result::{Result, Error, Kind};
 use url;
 use util::{Token, Timeout};
 
-
+//callback trait
 pub trait Handler {
-	// general
-
+	
 	/// Called when a request to shutdown all connections has been received.
 	#[inline]
 	fn on_shutdown(&mut self) {

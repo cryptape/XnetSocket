@@ -20,17 +20,12 @@ mod result;
 mod connection;
 mod handler;
 mod factory;
-
 mod message;
-
 mod protocol;
 mod communication;
 mod io;
 mod stream;
-
-
 pub mod util;
-
 pub use communication::Sender;
 pub use factory::Factory;
 pub use handler::Handler;
@@ -38,13 +33,10 @@ pub use message::Message;
 
 use mio::Poll;
 pub use protocol::{CloseCode, OpCode};
-
 pub use result::{Result, Error};
 pub use result::Kind as ErrorKind;
 use std::borrow::Borrow;
 use std::default::Default;
-
-
 use std::fmt;
 use std::net::{SocketAddr, ToSocketAddrs};
 

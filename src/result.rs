@@ -97,7 +97,8 @@ impl StdError for Error {
 
 impl From<io::Error> for Error {
 	fn from(err: io::Error) -> Error {
-		Error::new(Kind::Io(err), "")
+		let detail = err.to_string();
+		Error::new(Kind::Io(err), detail)
 	}
 }
 
@@ -122,8 +123,14 @@ impl From<httparse::Error> for Error {
 impl From<mio::channel::SendError<Command>> for Error {
 	fn from(err: mio::channel::SendError<Command>) -> Error {
 		match err {
-			mio::channel::SendError::Io(err) => Error::from(err),
-			_ => Error::new(Kind::Queue(err), ""),
+			mio::channel::SendError::Io(err) => {
+				let detail = err.to_string();
+				Error::new(Kind::Io(err), detail)
+			}
+			_ => {
+				let detail = err.to_string();
+				Error::new(Kind::Queue(err), detail)
+			}
 		}
 	}
 }
@@ -131,14 +138,18 @@ impl From<mio::channel::SendError<Command>> for Error {
 impl From<mio::timer::TimerError> for Error {
 	fn from(err: mio::timer::TimerError) -> Error {
 		match err {
-			_ => Error::new(Kind::Timer(err), ""),
+			_ => {
+				let detail = err.to_string();
+				Error::new(Kind::Timer(err), detail)
+			}
 		}
 	}
 }
 
 impl From<Utf8Error> for Error {
 	fn from(err: Utf8Error) -> Error {
-		Error::new(Kind::Encoding(err), "")
+		let detail = err.to_string();
+		Error::new(Kind::Encoding(err), detail)
 	}
 }
 
@@ -148,6 +159,7 @@ where
 	B: StdError + Send + Sync + 'static,
 {
 	fn from(err: Box<B>) -> Error {
-		Error::new(Kind::Custom(err), "")
+		let detail = err.to_string();
+		Error::new(Kind::Custom(err), detail)
 	}
 }
