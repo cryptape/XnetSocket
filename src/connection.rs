@@ -163,7 +163,7 @@ where
 
 	//TODO
 	pub fn reset(&mut self) -> Result<()> {
-		
+
 		// socket is client
 		if self.is_client() {
 			if let Connecting(ref mut req, ref mut res) = self.state {
@@ -372,16 +372,17 @@ where
 				Err(Error::new(Kind::Internal, "connect state not change"))
 			} else {
 				trace!("Ready to read messages from {}.", self.peer_addr());
-				while let Some(len) = self.buffer_in()? {
+				//TODO
+				if let Some(len) = self.buffer_in()? {
 					trace!("read data {}", len);
-					self.read_data()?; //read data in in_buffer
+					//read data in in_buffer
+					self.read_data()?;
 					if len == 0 {
 						if self.events.is_writable() {
 							self.events.remove(Ready::readable());
 						} else {
 							self.disconnect()
 						}
-						break;
 					}
 				}
 				Ok(())
@@ -498,7 +499,7 @@ where
 
 		Ok(self.check_events())
 	}
-	
+
 	fn check_events(&mut self) {
 		if !self.state.is_connecting() {
 			self.events.insert(Ready::readable());
@@ -530,25 +531,28 @@ where
 	fn buffer_in(&mut self) -> Result<Option<usize>> {
 		//input buffer
 		trace!("Reading buffer for connection to {}.", self.peer_addr());
-		if let Some(len) = self.socket.try_read_buf(self.in_buffer.get_mut())? {
+		while let Some(len) = self.socket.try_read_buf(self.in_buffer.get_mut())? {
 			trace!("try read buffer len {:?}, data {:?}", len, self.in_buffer.get_ref());
-			if self.in_buffer.get_ref().len() == self.in_buffer.get_ref().capacity() {
-				// extend
-				let mut new = Vec::with_capacity(self.in_buffer.get_ref().capacity());
-				new.extend(&self.in_buffer.get_ref()[self.in_buffer.position() as usize..]);
-
-				if new.len() == new.capacity() {
-					if self.settings.in_buffer_grow {
-						new.reserve(self.settings.in_buffer_capacity);
-					} else {
-						return Err(Error::new(Kind::Capacity, "Maxed out input buffer for connection."));
+			if len == 0 {
+				return Ok(Some(self.in_buffer.get_ref().len()));
+			} else {
+				if self.in_buffer.get_ref().len() == self.in_buffer.get_ref().capacity() {
+					// extend
+					let mut new = Vec::with_capacity(self.in_buffer.get_ref().capacity());
+					new.extend(&self.in_buffer.get_ref()[self.in_buffer.position() as usize..]);
+					if new.len() == new.capacity() {
+						if self.settings.in_buffer_grow {
+							new.reserve(self.settings.in_buffer_capacity);
+						} else {
+							return Err(Error::new(Kind::Capacity, "Maxed out input buffer for connection"));
+						}
 					}
+					self.in_buffer = Cursor::new(new);
+				} else {
+					return Ok(Some(self.in_buffer.get_ref().len()));
 				}
-				self.in_buffer = Cursor::new(new);
 			}
-			Ok(Some(len))
-		} else {
-			Ok(None)
 		}
+		Ok(None)
 	}
 }

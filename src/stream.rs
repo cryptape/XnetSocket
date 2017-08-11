@@ -19,15 +19,10 @@ pub trait TryReadBuf: io::Read {
 	where
 		Self: Sized,
 	{
-		// Reads the length of the slice supplied by buf.mut_bytes into the buffer
-		// This is not guaranteed to consume an entire datagram or segment.
-		// If your protocol is msg based (instead of continuous stream) you should
-		// ensure that your buffer is large enough to hold an entire segment (1532 bytes if not jumbo
-		// frames)
 		let res = map_non_block(self.read(unsafe { buf.bytes_mut() }));
-
 		if let Ok(Some(cnt)) = res {
 			unsafe {
+				//set_position()
 				buf.advance_mut(cnt);
 			}
 		}
@@ -44,9 +39,9 @@ pub trait TryWriteBuf: io::Write {
 		let res = map_non_block(self.write(buf.bytes()));
 
 		if let Ok(Some(cnt)) = res {
+			//set_position()
 			buf.advance(cnt);
 		}
-
 		res
 	}
 }
