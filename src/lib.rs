@@ -26,6 +26,7 @@ mod communication;
 mod io;
 mod stream;
 pub mod util;
+use communication::Command;
 pub use communication::Sender;
 pub use factory::Factory;
 pub use handler::Handler;
@@ -47,8 +48,8 @@ where
     F: FnMut(Sender) -> H,
     H: Handler,
 {
-    let ws = XnetSocket::new(factory)?;
-    ws.listen(addr)?;
+    let xnet = XnetSocket::new(factory)?;
+    xnet.listen(addr)?;
     Ok(())
 }
 
@@ -58,13 +59,13 @@ where
     F: FnMut(Sender) -> H,
     H: Handler,
 {
-    let mut ws = XnetSocket::new(factory)?;
+    let mut xnet = XnetSocket::new(factory)?;
     //    let parsed =
     //        url::Url::parse(url.borrow())
     //            .map_err(|err| Error::new(ErrorKind::Internal, format!("Unable to parse {} as url due to {:?}", url.borrow(), err)))?;
     //    trace!("----{:?}---", url.borrow());
-    ws.connect(url)?;
-    ws.run()?;
+    xnet.connect(url)?;
+    xnet.run()?;
     Ok(())
 }
 
@@ -177,7 +178,6 @@ where
         Builder::new().build(factory)
     }
 
-
     pub fn bind<A>(mut self, addr_spec: A) -> Result<XnetSocket<F>>
     where
         A: ToSocketAddrs,
@@ -206,8 +206,6 @@ where
         self.bind(addr_spec).and_then(|server| server.run())
     }
 
-
-
     pub fn connect(&mut self, addr_spec: String) -> Result<&mut XnetSocket<F>> {
         let sender = self.handler.sender();
         info!("Queuing connection to {}", addr_spec);
@@ -229,6 +227,10 @@ where
 
     pub fn local_addr(&self) -> ::std::io::Result<SocketAddr> {
         self.handler.local_addr()
+    }
+
+    pub fn sender_handler(&self) -> mio::channel::SyncSender<Command> {
+        self.handler.sender_handler()
     }
 }
 

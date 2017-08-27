@@ -16,14 +16,14 @@ pub trait Factory {
 
 
     #[inline]
-    fn client_connected(&mut self, ws: Sender) -> Self::Handler {
-        self.connection_made(ws)
+    fn client_connected(&mut self, xnet: Sender) -> Self::Handler {
+        self.connection_made(xnet)
     }
 
 
     #[inline]
-    fn server_connected(&mut self, ws: Sender) -> Self::Handler {
-        self.connection_made(ws)
+    fn server_connected(&mut self, xnet: Sender) -> Self::Handler {
+        self.connection_made(xnet)
     }
 
 

@@ -112,6 +112,10 @@ where
         Sender::new(ALL, self.queue_tx.clone(), 0)
     }
 
+    pub fn sender_handler(&self) -> mio::channel::SyncSender<Command> {
+        self.queue_tx.clone()
+    }
+
     pub fn listen(&mut self, poll: &mut Poll, addr: &SocketAddr) -> Result<&mut Handler<F>> {
         debug_assert!(self.listener.is_none(), "Attempted to listen for connections from two addresses on the same socket.");
 
